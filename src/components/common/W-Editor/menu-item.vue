@@ -15,6 +15,7 @@
 import remixiconUrl from 'remixicon/fonts/remixicon.symbol.svg'
 
 export default {
+  name:'MenuItem',
   props: {
     icon: {
       type: String,

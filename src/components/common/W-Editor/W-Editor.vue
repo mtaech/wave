@@ -1,14 +1,18 @@
 <template>
   <div class="editor" v-if="editor">
-    <menu-bar class="editor__header" :editor="editor" />
-    <editor-content class="editor__content" :editor="editor" />
-<!--    <div class="editor__footer">
-    </div>-->
+    <menu-bar class="editor_header" :editor.sync="editor"/>
+    <editor-content class="editor_content" :editor="editor"/>
+    <div class="editor_footer">
+      <div class="editor_count">
+        字数统计：{{ editor.storage.characterCount.characters() }}
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-import {Editor, EditorContent} from '@tiptap/vue-3'
+<script setup>
+import {reactive, ref} from "vue";
+import {Editor,EditorContent} from "@tiptap/vue-3";
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
@@ -16,39 +20,40 @@ import Highlight from '@tiptap/extension-highlight'
 import CharacterCount from '@tiptap/extension-character-count'
 import MenuBar from './menu-bar.vue'
 
-
-export default {
-  name:'W-Editor',
-  components: {
-    EditorContent,
-    MenuBar,
-  },
-
-  data() {
-    return {
-      provider: null,
-      editor: null,
-      status: 'connecting',
+let editor = reactive(new Editor({
+  editorProps: {
+    editable: function () {
+      return true;
     }
   },
+  extensions: [
+    StarterKit.configure({
+      history: false,
+    }),
+    Highlight,
+    TaskList,
+    TaskItem,
+    CharacterCount.configure({
+      limit: 20000,
+    }),
+  ],
+}));
+</script>
+
+<script>
+export default {
+  name: 'WEditor',
 
   mounted() {
-    this.editor = new Editor({
-      extensions: [
-        StarterKit.configure({
-          history: false,
-        }),
-        Highlight,
-        TaskList,
-        TaskItem,
-        CharacterCount.configure({
-          limit: 10000,
-        }),
-      ],
-    })
+    window.addEventListener('keydown', this.onKeyDown, true);
   },
 
   methods: {
+    onKeyDown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.keyCode === 83) {
+        event.preventDefault();
+      }
+    }
   },
 }
 </script>
@@ -57,14 +62,19 @@ export default {
 .editor {
   display: flex;
   flex-direction: column;
-  max-height: 26rem;
+  max-height: 60rem;
   color: #0D0D0D;
   background-color: #FFF;
   border: 1px solid #0D0D0D;
   border-radius: 0.75rem;
   text-align: left;
+  min-height: 40rem;
+  min-width: 400px;
+  max-width: 40%;
+  margin-left: 30%;
+  margin-right: 30%;
 
-  &__header {
+  &_header {
     display: flex;
     align-items: center;
     flex: 0 0 auto;
@@ -73,15 +83,15 @@ export default {
     border-bottom: 1px solid #0D0D0D;
   }
 
-  &__content {
-    padding: 1.25rem 1rem;
+  &_content {
+    padding: 1rem;
     flex: 1 1 auto;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  &__footer {
+  &_footer {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
@@ -94,61 +104,25 @@ export default {
     color: #0D0D0D;
     padding: 0.25rem 0.75rem;
   }
-
-  /* Some information about the status */
-  &__status {
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-
-    &::before {
-      content: ' ';
-      flex: 0 0 auto;
-      display: inline-block;
-      width: 0.5rem;
-      height: 0.5rem;
-      background: rgba(#0D0D0D, 0.5);
-      border-radius: 50%;
-      margin-right: 0.5rem;
-    }
-
-    &--connecting::before {
-      background: #616161;
-    }
-
-    &--connected::before {
-      background: #B9F18D;
-    }
-  }
-
-  &__name {
-    button {
-      background: none;
-      border: none;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 600;
-      color: #0D0D0D;
-      border-radius: 0.4rem;
-      padding: 0.25rem 0.5rem;
-
-      &:hover {
-        color: #FFF;
-        background-color: #0D0D0D;
-      }
-    }
-  }
 }
 </style>
 
 <style lang="scss">
 /* Basic editor styles */
-.ProseMirror:focus{
+.ProseMirror:focus {
   outline: none;
 }
+
 .ProseMirror {
+  min-height: 560px;
+
   > * + * {
-    margin-top: 0.75em;
+    //margin-top: 0.75em;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   ul,
