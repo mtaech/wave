@@ -13,6 +13,7 @@
 <script>
 
 import MenuItem from "./menu-item.vue";
+import {invoke} from "@tauri-apps/api";
 
 export default {
   components: {
@@ -82,9 +83,11 @@ export default {
           action: () => this.editor.chain().focus().redo().run(),
         },
         {
-          icon: 'space',
-          title: '查看',
-          action: () => console.log(this.editor.view.editable = false),
+          icon: 'save',
+          title: '保存',
+          action: () => {
+           invoke("save_chapter",{content:this.editor.getHTML()});
+          }
         },
       ],
     }

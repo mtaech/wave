@@ -44,7 +44,7 @@ pub async fn set_db_pool() -> DatabaseConnection {
         .unwrap();
     let db_url = String::from("sqlite:")
         .add(db_path.as_str())
-        .add("?mode=rwc");//auto create db file if not exist
+        .add("?mode=rwc"); //auto create db file if not exist
     log::warn!("db url path is {}", db_url);
     let mut opt = ConnectOptions::new(db_url);
     opt.max_connections(100)
