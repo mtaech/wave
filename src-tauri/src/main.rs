@@ -3,7 +3,6 @@
     windows_subsystem = "windows"
 )]
 
-use dotenv::dotenv;
 use once_cell::sync::OnceCell;
 use sea_orm::DatabaseConnection;
 use std::env;
@@ -23,7 +22,6 @@ impl GlobalEnv {
 
 fn main() {
     init::setup_logger();
-    dotenv().ok();
     let connection: DatabaseConnection = block_on(init::set_db_pool());
     DB_POOL.set(connection);
     tauri::Builder::default()
