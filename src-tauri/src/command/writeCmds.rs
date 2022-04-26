@@ -1,10 +1,15 @@
-use crate::entity::chapter;
-use crate::entity::chapter::ActiveModel as ChapterModel;
-use crate::DB_CONN;
+use crate::entity::Chapter;
+use crate::{writeCmds, DB_POOL};
 
 #[tauri::command]
-pub async fn save_chapter(model: ChapterModel) {
-    let conn = DB_CONN.get().unwrap();
-    let data = chapter::ActiveModel { id: "1", ..model };
-    data.insert(conn).await;
+pub async fn save_chapter(chapter: Chapter) {
+    let pool = DB_POOL.get().unwrap();
+    log::info!("chapter info is {:?}", chapter);
+    sqlx::query(" insert into chapter (id, name, content, revision, create_time) values (?,?,?,?,?,datetime())")
+        .bind(&chapter.id)
+        .bind(&chapter.name)
+        .bind(&chapter.content)
+        .execute(pool)
+        .await
+        .unwrap();
 }

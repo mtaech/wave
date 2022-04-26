@@ -81,14 +81,7 @@ export default {
           icon: 'arrow-go-forward-line',
           title: '重做',
           action: () => this.editor.chain().focus().redo().run(),
-        },
-        {
-          icon: 'save',
-          title: '保存',
-          action: () => {
-           invoke("save_chapter",{content:this.editor.getHTML()});
-          }
-        },
+        }
       ],
     }
   },

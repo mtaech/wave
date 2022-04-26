@@ -4,7 +4,8 @@ use std::time::Duration;
 use std::{env, fs};
 
 use log::{error, LevelFilter};
-use sea_orm::{ConnectOptions, DatabaseConnection};
+use sqlx::sqlite::{SqliteConnection, SqlitePoolOptions};
+use sqlx::{prelude, Error, Pool, Sqlite};
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
     let log_path = get_log_path();
@@ -26,7 +27,7 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
     Ok(())
 }
 
-pub async fn set_db_pool() -> DatabaseConnection {
+pub async fn set_db_conn() -> Pool<Sqlite> {
     let home_path = get_current_dir_path();
     let db_dir = home_path.join("db");
     if !db_dir.exists() {
@@ -46,19 +47,15 @@ pub async fn set_db_pool() -> DatabaseConnection {
         .add(db_path.as_str())
         .add("?mode=rwc"); //auto create db file if not exist
     log::warn!("db url path is {}", db_url);
-    let mut opt = ConnectOptions::new(db_url);
-    opt.max_connections(100)
-        .min_connections(5)
-        .connect_timeout(Duration::from_secs(8))
-        .idle_timeout(Duration::from_secs(8))
-        .max_lifetime(Duration::from_secs(8))
-        .sqlx_logging(true);
 
-    let db = sea_orm::Database::connect(opt).await;
-    match db {
-        Ok(db) => db,
-        Err(err) => {
-            error!("db connect error,reason:{:?}", err);
+    let pool = SqlitePoolOptions::new()
+        .max_connections(10)
+        .connect(&db_url)
+        .await;
+    match pool {
+        Ok(pool) => pool,
+        Err(error) => {
+            log::error!("connect to db failed reason :{:?}", error);
             panic!()
         }
     }
