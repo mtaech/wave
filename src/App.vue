@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import WEditor from "./components/common/W-Editor/W-Editor.vue";
 </script>
 

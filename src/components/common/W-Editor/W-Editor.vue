@@ -1,4 +1,7 @@
 <template>
+  <el-button-group>
+    <el-button plain @click="save">SAVE</el-button>
+  </el-button-group>
   <div class="editor" v-if="editor">
     <menu-bar class="editor_header" :editor.sync="editor"/>
     <editor-content class="editor_content" :editor="editor"/>
@@ -10,7 +13,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {reactive, ref} from "vue";
 import {Editor,EditorContent} from "@tiptap/vue-3";
 import StarterKit from '@tiptap/starter-kit'
@@ -40,7 +43,10 @@ let editor = reactive(new Editor({
 }));
 </script>
 
-<script>
+<script lang="ts">
+import {invoke} from "@tauri-apps/api";
+import {nanoid} from 'nanoid';
+
 export default {
   name: 'WEditor',
 
@@ -49,10 +55,23 @@ export default {
   },
 
   methods: {
+    
     onKeyDown(event) {
       if ((event.ctrlKey || event.metaKey) && event.keyCode === 83) {
         event.preventDefault();
       }
+    },
+    save() {
+      invoke('save_chapter',{
+          chapter:{
+            id:nanoid(10),
+            name:'第一张',
+            content:this.editor.getHTML(),
+            revision:'1',
+            create_time:new Date()
+          }
+      })
+
     }
   },
 }
@@ -70,9 +89,9 @@ export default {
   text-align: left;
   min-height: 40rem;
   min-width: 400px;
-  max-width: 40%;
-  margin-left: 30%;
-  margin-right: 30%;
+  max-width: 60%;
+  margin-left: 20%;
+  margin-right: 20%;
 
   &_header {
     display: flex;
