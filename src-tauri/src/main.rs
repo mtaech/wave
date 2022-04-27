@@ -2,10 +2,12 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-
+#[macro_use]
+extern crate rbatis;
 use command::writeCmds;
+use log::error;
 use once_cell::sync::OnceCell;
-use sqlx::{Pool, Sqlite};
+use rbatis::rbatis::Rbatis;
 use std::env;
 use tauri::async_runtime::block_on;
 
@@ -13,22 +15,26 @@ mod command;
 mod entity;
 mod init;
 
-static DB_POOL: OnceCell<Pool<Sqlite>> = OnceCell::new();
-
-pub struct GlobalEnv {}
-
-impl GlobalEnv {
-    pub fn global_db_pool() -> &'static Pool<Sqlite> {
-        DB_POOL.get().expect("get sqlite connect instance error")
-    }
-}
+static DB_POOL: OnceCell<Rbatis> = OnceCell::new();
 
 fn main() {
     init::setup_logger();
-    let pool: Pool<Sqlite> = block_on(init::set_db_conn());
-    DB_POOL.set(pool);
+    block_on(init_db());
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![writeCmds::save_chapter])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+async fn init_db() {
+    let db_url = init::set_db_conn();
+    let rb = Rbatis::new();
+    match rb.link(&db_url).await {
+        Ok(_) => {
+            DB_POOL.set(rb);
+        }
+        Err(error) => {
+            error!("db connect error reason:{:?}", error)
+        }
+    }
 }
