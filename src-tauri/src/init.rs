@@ -4,7 +4,8 @@ use std::time::Duration;
 use std::{env, fs};
 
 use log::{error, LevelFilter};
-use rbatis::rbatis::Rbatis;
+use sqlx::sqlite::{SqliteConnection, SqlitePoolOptions};
+use sqlx::{prelude, Error, Pool, Sqlite};
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
     let log_path = get_log_path();
@@ -26,7 +27,7 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
     Ok(())
 }
 
-pub fn set_db_conn() -> String {
+pub async fn set_db_conn() -> Pool<Sqlite> {
     let home_path = get_current_dir_path();
     let db_dir = home_path.join("db");
     if !db_dir.exists() {
@@ -47,7 +48,17 @@ pub fn set_db_conn() -> String {
         .add("?mode=rwc"); //auto create db file if not exist
     log::warn!("db url path is {}", db_url);
 
-    db_url
+    let pool = SqlitePoolOptions::new()
+        .max_connections(10)
+        .connect(&db_url)
+        .await;
+    match pool {
+        Ok(pool) => pool,
+        Err(error) => {
+            log::error!("connect to db failed reason :{:?}", error);
+            panic!()
+        }
+    }
 }
 
 fn get_home_path() -> PathBuf {
@@ -71,3 +82,4 @@ fn get_log_path() -> String {
     }
     path
 }
+
