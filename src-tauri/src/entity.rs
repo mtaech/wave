@@ -2,7 +2,6 @@ use chrono::{DateTime, Local};
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 
-#[crud_table(table_name:"chapter")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Chapter {
     pub id: Option<String>,
